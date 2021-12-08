@@ -12,7 +12,7 @@ from .tensor_details import (
     ShapeDetail,
     TensorDetail,
 )
-from .utils import frozendict
+from frozendict import frozendict
 
 from typing import Any, NoReturn
 
