@@ -24,8 +24,22 @@ else:
     # we import Annotated from typing_annotations
     from typing_extensions import Annotated
 
+
 # Not Type[Annotated...] as we want to use this in instance checks.
 _AnnotatedType = type(Annotated[torch.Tensor, ...])
+
+
+# Uniform unpickling across both torchtyping and Python versions
+class _Annotated:
+    def __class_getitem__(cls, params):
+        annotated = Annotated.__class_getitem__(params)
+
+        def __reduce__(*args, **kwargs):
+            (getitem, (_, x)) = _AnnotatedType.__reduce__(annotated, *args, **kwargs)
+            return (getitem, (Annotated, x))
+
+        annotated.__reduce__ = __reduce__
+        return annotated
 
 
 # For use when we have a plain TensorType, without any [].
@@ -163,7 +177,7 @@ class TensorTypeMixin(metaclass=_TensorTypeMeta):
 
         # Frozen dict needed for Union[TensorType[...], ...], as Union hashes its
         # arguments.
-        return Annotated[
+        return _Annotated[
             cls.base_cls,
             frozendict(
                 {"__torchtyping__": True, "details": details, "cls_name": cls.__name__}

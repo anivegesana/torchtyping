@@ -21,3 +21,6 @@ class frozendict(dict):
 
     def __deepcopy__(self, memo):
         return self
+
+    def __reduce__(self, *args, **kwargs):
+        return (frozendict, (dict(self),))
